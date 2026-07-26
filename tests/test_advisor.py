@@ -114,7 +114,7 @@ class TestRunAdvisorWithMock:
     def test_returns_mock_on_exception(self, monkeypatch):
         def failing_client():
             raise ConnectionError("API down")
-        monkeypatch.setattr("backend.advisor.get_llm_client", failing_client)
+        monkeypatch.setattr("backend.advisor.advisor.get_llm_client", failing_client)
 
         advisor_in = make_advisor_input()
         result = run_advisor(advisor_in)
@@ -126,7 +126,7 @@ class TestRunAdvisorWithMock:
         class BadClient:
             def generate(self, prompt):
                 return "Your CGPA is 99.9 and you will get 100%"
-        monkeypatch.setattr("backend.advisor.get_llm_client", lambda: BadClient())
+        monkeypatch.setattr("backend.advisor.advisor.get_llm_client", lambda: BadClient())
 
         advisor_in = make_advisor_input()
         result = run_advisor(advisor_in)
