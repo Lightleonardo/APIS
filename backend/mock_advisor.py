@@ -15,5 +15,5 @@ def mock_advisor(advisor_input: AdvisorInput) -> str:
         f"Your current CGPA is {advisor_input.current_cgpa or 'N/A'}. "
         f"Predicted final CGPA: {advisor_input.predicted_final_cgpa:.2f}. "
         f"Goal feasible: {advisor_input.goal_feasible}. "
-        f"[MOCK ADVISOR — replace with LLM in Phase 5]"
+        f"[MOCK ADVISOR — AI client is offline]"
     )

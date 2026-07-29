@@ -20,7 +20,7 @@ def render_sidebar_form() -> StudentInput | None:
     st.sidebar.header("📝 Student Profile")
 
     # Basic info
-    student_name = st.sidebar.text_input("Full Name", value="John Doe")
+    student_name = st.sidebar.text_input("Full Name", value="Your Name")
     university = st.sidebar.text_input("University", value="University of Lagos")
     faculty = st.sidebar.text_input("Faculty", value="Science")
     department = st.sidebar.text_input("Department", value="Computer Science")
