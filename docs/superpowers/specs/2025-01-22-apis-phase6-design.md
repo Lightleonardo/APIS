@@ -297,4 +297,4 @@ APIS/
 
 This design has been reviewed and approved for Phase 6 implementation.
 
-**Next Step:** Create implementation plan using `writing-plans` skill.
+**Next Step:** Create implementation plan.
