@@ -1,6 +1,6 @@
 # Academic Performance Intelligence System (APIS)
 
-An AI-powered academic planning and decision support platform for university students.
+Tells you exactly where you stand academically, what's realistically still possible, and what you need to do about it. Backed by real math and machine learning, explained in plain language.
 
 ## Architecture
 
@@ -8,16 +8,16 @@ An AI-powered academic planning and decision support platform for university stu
 Student Data
       │
       ▼
-Academic Analytics Engine (Deterministic Calculations) ──► Phase 4
+Academic Analytics Engine (Deterministic Calculations)
       │
       ▼
-Machine Learning Engine (Predictive Analytics) ──► Phase 3
+Machine Learning Engine (Predictive Analytics) 
       │
       ▼
-AI Academic Advisor (Explanation & Guidance) ──► Phase 5
+AI Academic Advisor (Explanation & Guidance) 
       │
       ▼
-Interactive Dashboard ──► Phase 6
+Interactive Dashboard 
 ```
 
 ## Phases
@@ -29,8 +29,8 @@ Interactive Dashboard ──► Phase 6
 | **Phase 3** | Model Development | ✅ Complete |
 | **Phase 4** | Backend Logic | ✅ Complete |
 | **Phase 5** | AI Advisor (LLM Integration) | ✅ Complete |
-| **Phase 6** | Streamlit Dashboard | 🔄 Planned |
-| **Phase 7** | Production (Auth, DB, API) | 🔄 Planned |
+| **Phase 6** | Streamlit Dashboard | ✅ Complete |
+| **Phase 7** | Production (Deployment, API) | ✅ Complete |
 
 ---
 
@@ -38,7 +38,7 @@ Interactive Dashboard ──► Phase 6
 
 ### Prerequisites
 - Python 3.11+
-- Google Gemini API key (for Phase 5 AI Advisor)
+- Google Gemini (AI Advisor)
 
 ### Installation
 
@@ -119,7 +119,7 @@ print(f"\nAI Advisor: {advice}")
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `GEMINI_API_KEY` | `""` | Required for AI Advisor |
-| `LLM_MODEL` | `gemini-1.5-flash` | Model to use |
+| `LLM_MODEL` | `gemini 3.1 flash lite` | Model to use |
 | `LLM_TEMPERATURE` | `0.3` | Generation temperature |
 | `LLM_MAX_TOKENS` | `200` | Max output tokens |
 | `LLM_TOP_P` | `0.9` | Nucleus sampling |
@@ -246,9 +246,4 @@ rows = generate_dataset(n_students=15000, programme_durations=[4,5,6], seed=42)
 # Uses GroupKFold by student_id, RandomizedSearchCV → GridSearchCV
 # Persists .pkl with model, feature_columns, metrics, feature_importance, label_encoder
 ```
-
----
-
-## License
-
-MIT
+✌️
