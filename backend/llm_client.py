@@ -10,10 +10,10 @@ class LLMClient(ABC):
 
 
 class GeminiClient(LLMClient):
-    def __init__(self, api_key: str | None = None):
-        api_key = api_key or settings.GEMINI_API_KEY
+    def __init__(self):
+        api_key = settings.GEMINI_API_KEY
         if not api_key:
-            raise ValueError("GEMINI_API_KEY not configured")
+            raise ValueError("GEMINI_API_KEY not configured in .env file")
         
         self.client = genai.Client(api_key=api_key)
         self.model_name = settings.LLM_MODEL
