@@ -15,7 +15,7 @@ def test_llm_settings():
     s = Settings()
     assert hasattr(s, 'GEMINI_API_KEY')
     assert hasattr(s, 'LLM_MODEL')
-    assert s.LLM_MODEL == "gemini-1.5-flash"
+    assert s.LLM_MODEL == "gemini 3.1 Flash Lite"
     assert s.LLM_TEMPERATURE == 0.3
     assert s.LLM_MAX_TOKENS == 200
     assert s.LLM_TOP_P == 0.9

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import google.generativeai as genai
+from google import genai
 from backend.config import settings
 
 
@@ -14,25 +14,20 @@ class GeminiClient(LLMClient):
         api_key = api_key or settings.GEMINI_API_KEY
         if not api_key:
             raise ValueError("GEMINI_API_KEY not configured")
-        genai.configure(api_key=api_key)
+        
+        self.client = genai.Client(api_key=api_key)
+        self.model_name = settings.LLM_MODEL
 
-        self.model = genai.GenerativeModel(
-            model_name=settings.LLM_MODEL,
-            generation_config={
+    def generate(self, prompt: str) -> str:
+        response = self.client.models.generate_content(
+            model=self.model_name,
+            contents=prompt,
+            config={
                 "temperature": settings.LLM_TEMPERATURE,
                 "max_output_tokens": settings.LLM_MAX_TOKENS,
                 "top_p": settings.LLM_TOP_P,
-            },
-            safety_settings={
-                "HARM_CATEGORY_HARASSMENT": "BLOCK_MEDIUM_AND_ABOVE",
-                "HARM_CATEGORY_HATE_SPEECH": "BLOCK_MEDIUM_AND_ABOVE",
-                "HARM_CATEGORY_SEXUALLY_EXPLICIT": "BLOCK_MEDIUM_AND_ABOVE",
-                "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_MEDIUM_AND_ABOVE",
             }
         )
-
-    def generate(self, prompt: str) -> str:
-        response = self.model.generate_content(prompt)
         return response.text or ""
 
 

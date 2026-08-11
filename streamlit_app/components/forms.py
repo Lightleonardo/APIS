@@ -20,11 +20,11 @@ def render_sidebar_form() -> StudentInput | None:
     st.sidebar.header("📝 Student Profile")
 
     # Basic info
-    student_name = st.sidebar.text_input("Full Name", value="Your Name")
-    university = st.sidebar.text_input("University", value="University of Lagos")
-    faculty = st.sidebar.text_input("Faculty", value="Science")
-    department = st.sidebar.text_input("Department", value="Computer Science")
-    course = st.sidebar.text_input("Course", value="Computer Science")
+    student_name = st.sidebar.text_input("Full Name", value="")
+    university = st.sidebar.text_input("University", value="")
+    faculty = st.sidebar.text_input("Faculty", value="")
+    department = st.sidebar.text_input("Department", value="")
+    course = st.sidebar.text_input("Course", value="")
 
     programme_duration = st.sidebar.selectbox("Programme Duration (years)", [4, 5, 6], index=1)
 
@@ -41,7 +41,7 @@ def render_sidebar_form() -> StudentInput | None:
             sem_num = i + 1
             gpa = st.number_input(f"GPA", 0.0, 5.0, 3.5, 0.01, key=f"gpa_{i}", format="%.2f")
             credits = st.number_input(f"Credits", 12, 24, 20, key=f"credits_{i}")
-            session = st.text_input(f"Session (YYYY/YYYY)", "2023/2024", key=f"session_{i}")
+            session = st.text_input(f"Session (YYYY/YYYY)", "2025/2026", key=f"session_{i}")
             records.append(SemesterRecord(semester_number=sem_num, gpa=gpa, credits=credits, academic_session=session))
 
     col1, col2 = st.sidebar.columns(2)

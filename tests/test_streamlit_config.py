@@ -9,6 +9,6 @@ def test_configure_page_sets_page_config(monkeypatch):
     monkeypatch.setattr(st, "set_page_config", lambda **kw: calls.update(kw))
     configure_page()
     assert calls["page_title"] == "APIS — Academic Performance Intelligence System"
-    assert calls["page_icon"] == "📊"
+    assert calls["page_icon"] == "🧠"
     assert calls["layout"] == "wide"
     assert calls["initial_sidebar_state"] == "expanded"

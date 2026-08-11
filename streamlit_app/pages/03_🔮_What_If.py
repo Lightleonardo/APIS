@@ -1,4 +1,3 @@
-from streamlit_app.utils.guards import require_student_input, require_pipeline_result
 import streamlit as st
 from streamlit_app.components.charts import render_what_if_chart
 from streamlit_app.utils.formatters import fmt_cgpa
@@ -6,8 +5,7 @@ from backend.graphs import what_if_simulator
 from backend.grading_rules import classify_cgpa
 import plotly.graph_objects as go
 
-require_student_input()
-require_pipeline_result()
+
 
 
 st.header("🔮 What-If Simulator")

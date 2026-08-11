@@ -23,4 +23,4 @@ if st.button("🗑️ Clear Session", type="secondary"):
     SessionState.clear()
     st.rerun()
 
-st.caption("APIS v1.0 — Academic Performance Intelligence System")
+st.caption("APIS v1.1 — Academic Performance Intelligence System")
