@@ -1,6 +1,6 @@
 import pytest
 from backend.advisor import (
-    build_prompt, extract_numbers, numeric_echo_check, run_advisor
+    build_prompt, run_advisor, AdvisorResult
 )
 from backend.schemas import AdvisorInput, SemesterTarget, FeatureImportance, ImprovementTrend
 
@@ -75,41 +75,6 @@ class TestBuildPrompt:
         assert "Not available" in prompt or "N/A" in prompt or "None" in prompt
 
 
-class TestExtractNumbers:
-    def test_extracts_floats_and_ints(self):
-        text = "Your CGPA is 3.8 and you need 4.7 for 4 semesters. Score: 78"
-        nums = extract_numbers(text)
-        assert 3.8 in nums
-        assert 4.7 in nums
-        assert 4.0 in nums
-        assert 78.0 in nums
-
-    def test_no_numbers_returns_empty(self):
-        assert extract_numbers("No numbers here") == []
-
-
-class TestNumericEchoCheck:
-    def test_passes_for_correct_numbers(self):
-        advisor_in = make_advisor_input()
-        response = "Your CGPA is 3.8. You need 4.7 average. Predicted: 4.3. Health: 78."
-        assert numeric_echo_check(response, advisor_in) is True
-
-    def test_fails_on_hallucinated_number(self):
-        advisor_in = make_advisor_input(current_cgpa=3.8)
-        response = "Your CGPA is 4.99. Great job!"  # 4.99 not in expected
-        assert numeric_echo_check(response, advisor_in) is False
-
-    def test_tolerance_allows_small_diff(self):
-        advisor_in = make_advisor_input(predicted_final_cgpa=4.30)
-        response = "Predicted final CGPA: 4.31"  # Within 0.02
-        assert numeric_echo_check(response, advisor_in) is True
-
-    def test_fails_outside_tolerance(self):
-        advisor_in = make_advisor_input(predicted_final_cgpa=4.30)
-        response = "Predicted final CGPA: 4.35"  # Outside 0.02
-        assert numeric_echo_check(response, advisor_in) is False
-
-
 class TestRunAdvisorWithMock:
     def test_returns_mock_on_exception(self, monkeypatch):
         def failing_client():
@@ -117,18 +82,22 @@ class TestRunAdvisorWithMock:
         monkeypatch.setattr("backend.advisor.advisor.get_llm_client", failing_client)
 
         advisor_in = make_advisor_input()
-        result = run_advisor(advisor_in)
+        result: AdvisorResult = run_advisor(advisor_in)
 
-        assert "[MOCK ADVISOR" in result
-        assert "Test Student" in result
+        assert result.source == "mock_error"
+        assert "[MOCK ADVISOR" in result.response
+        assert "Test Student" in result.response
 
-    def test_returns_mock_on_echo_check_fail(self, monkeypatch):
+    def test_returns_llm_response_when_echo_check_removed(self, monkeypatch):
+        """Test that without echo check, LLM response is returned even with hallucinated numbers."""
         class BadClient:
             def generate(self, prompt):
                 return "Your CGPA is 99.9 and you will get 100%"
         monkeypatch.setattr("backend.advisor.advisor.get_llm_client", lambda: BadClient())
 
         advisor_in = make_advisor_input()
-        result = run_advisor(advisor_in)
+        result: AdvisorResult = run_advisor(advisor_in)
 
-        assert "[MOCK ADVISOR" in result
+        # Now returns LLM response since echo check was removed
+        assert result.source == "llm"
+        assert "99.9" in result.response

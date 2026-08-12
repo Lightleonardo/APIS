@@ -2,7 +2,7 @@ import pytest
 import time
 from backend.advisor.rate_limiter import RateLimiter, advisor_rate_limiter
 from backend.advisor.cache import _advisor_cache, _cache_key, get_cached_response, set_cached_response, clear_cache
-from backend.advisor import run_advisor, _RESPONSE_CACHE
+from backend.advisor import run_advisor, _RESPONSE_CACHE, AdvisorResult
 from backend.schemas import AdvisorInput, SemesterTarget, FeatureImportance, ImprovementTrend
 
 
@@ -189,6 +189,7 @@ class TestAdvisorWithCache:
     def test_advisor_uses_cache(self, monkeypatch):
         """Test that run_advisor checks cache before calling LLM."""
         from backend.advisor.advisor import _RESPONSE_CACHE, run_advisor
+        from backend.advisor import AdvisorResult
 
         # Pre-populate cache
         advisor_in = AdvisorInput(
@@ -216,7 +217,8 @@ class TestAdvisorWithCache:
         advisor_module.build_prompt = lambda x: "test prompt"
 
         try:
-            result = run_advisor(advisor_in)
-            assert result == "cached response"
+            result: AdvisorResult = run_advisor(advisor_in)
+            assert result.source == "cache"
+            assert result.response == "cached response"
         finally:
             advisor_module.build_prompt = original_build

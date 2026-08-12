@@ -3,6 +3,9 @@ from streamlit_app.utils.backend_adapter import run_analysis_with_advice
 from streamlit_app.utils.session_state import SessionState
 from streamlit_app.utils.formatters import tone_badge
 from streamlit_app.components.forms import render_sidebar_form
+from backend.advisor import run_advisor, AdvisorResult
+from backend.orchestrator import pipeline_to_advisor_input
+import time
 
 
 SessionState.init()
@@ -10,6 +13,7 @@ SessionState.init()
 # First, try to get existing pipeline from session state
 pipeline = SessionState.get_pipeline()
 advice = SessionState.get_advice()
+advisor_result = st.session_state.get("advisor_result")  # Store AdvisorResult metadata
 
 # Only show form if no pipeline exists yet
 if not pipeline:
@@ -44,15 +48,30 @@ with col2:
     if st.button("🔄 Regenerate", use_container_width=True):
         if pipeline:
             with st.spinner("Getting fresh advice..."):
-                # Re-run advisor with existing pipeline data
-                from backend.advisor import run_advisor
-                from backend.orchestrator import pipeline_to_advisor_input
                 advisor_input = pipeline_to_advisor_input(pipeline)
-                new_advice = run_advisor(advisor_input)
-                SessionState.set_results(pipeline, new_advice)
+                advisor_input.tone = tone
+                result: AdvisorResult = run_advisor(advisor_input)
+                SessionState.set_results(pipeline, result.response)
+                st.session_state.advisor_result = result
                 st.rerun()
         else:
             st.warning("No analysis data available. Run analysis from Dashboard first.")
+
+# Status messages based on advisor result source
+if advisor_result:
+    if advisor_result.source == "cache":
+        st.info("🔁 No change — loaded from cache")
+    elif advisor_result.source == "mock_rate_limited":
+        if advisor_result.rate_limit_reset_at:
+            wait_seconds = max(0, int(advisor_result.rate_limit_reset_at - time.time()))
+            st.warning(f"⏳ Rate limited. Try again in {wait_seconds}s (showing offline advisor)")
+        else:
+            st.warning("⏳ Rate limited — showing offline advisor")
+    elif advisor_result.source == "mock_empty":
+        st.warning("⚠️ AI returned empty response — showing offline advisor")
+    elif advisor_result.source == "mock_error":
+        st.error("❌ AI service error — showing offline advisor")
+    # "llm" source shows no special message
 
 if advice:
     st.markdown(f"**Tone:** {tone_badge(tone)}", unsafe_allow_html=True)
@@ -60,11 +79,11 @@ if advice:
 else:
     if pipeline:
         with st.spinner("Generating initial advice..."):
-            from backend.advisor import run_advisor
-            from backend.orchestrator import pipeline_to_advisor_input
             advisor_input = pipeline_to_advisor_input(pipeline)
-            new_advice = run_advisor(advisor_input)
-            SessionState.set_results(pipeline, new_advice)
+            advisor_input.tone = tone
+            result: AdvisorResult = run_advisor(advisor_input)
+            SessionState.set_results(pipeline, result.response)
+            st.session_state.advisor_result = result
             st.rerun()
     else:
         st.info("👈 Run analysis from the **Dashboard** first to get AI advice.")

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from google import genai
+from google.genai import types  # 1. Added import for types
 from backend.config import settings
 
 
@@ -19,14 +20,17 @@ class GeminiClient(LLMClient):
         self.model_name = settings.LLM_MODEL
 
     def generate(self, prompt: str) -> str:
+        # Wrapping settings dictionary into types.GenerateContentConfig
+        config = types.GenerateContentConfig(
+            temperature=settings.LLM_TEMPERATURE,
+            max_output_tokens=settings.LLM_MAX_TOKENS,
+            top_p=settings.LLM_TOP_P,
+        )
+
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=prompt,
-            config={
-                "temperature": settings.LLM_TEMPERATURE,
-                "max_output_tokens": settings.LLM_MAX_TOKENS,
-                "top_p": settings.LLM_TOP_P,
-            }
+            config=config,  # Pass the explicit typed config object
         )
         return response.text or ""
 

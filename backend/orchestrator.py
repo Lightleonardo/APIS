@@ -99,5 +99,5 @@ def run_full_pipeline_with_advice(student_input: StudentInput) -> Tuple[Pipeline
     from backend.advisor import run_advisor
     pipeline_result = run_pipeline(student_input)
     advisor_input = pipeline_to_advisor_input(pipeline_result)
-    advice = run_advisor(advisor_input)
-    return pipeline_result, advice
+    result = run_advisor(advisor_input)
+    return pipeline_result, result.response

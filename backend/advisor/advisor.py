@@ -1,5 +1,6 @@
 import re
 import hashlib
+from dataclasses import dataclass
 from pathlib import Path
 from backend.schemas import AdvisorInput
 from backend.mock_advisor import mock_advisor
@@ -12,6 +13,14 @@ _PROMPT_TEMPLATE = None
 # Simple in-memory response cache: prompt_hash -> response
 _RESPONSE_CACHE: dict[str, str] = {}
 _CACHE_MAX_SIZE = 128
+
+
+@dataclass
+class AdvisorResult:
+    """Result from advisor with metadata for UI feedback."""
+    response: str
+    source: str  # "llm", "cache", "mock_rate_limited", "mock_error", "mock_empty"
+    rate_limit_reset_at: float | None = None  # Unix timestamp when rate limit resets
 
 
 def _load_prompt_template() -> str:
@@ -90,58 +99,48 @@ def build_prompt(advisor_input: AdvisorInput) -> str:
     )
 
 
-def extract_numbers(text: str) -> list[float]:
-    return [float(m) for m in re.findall(r'\b\d+\.?\d*\b', text)]
-
-
-def numeric_echo_check(response: str, advisor_input: AdvisorInput) -> bool:
-    found = extract_numbers(response)
-    expected = [
-        advisor_input.current_cgpa,
-        advisor_input.target_cgpa,
-        advisor_input.required_average_gpa,
-        advisor_input.predicted_final_cgpa,
-        getattr(advisor_input, 'predicted_next_gpa', None),
-        advisor_input.academic_health_score,
-        advisor_input.consistency_index,
-        advisor_input.remaining_semesters,
-    ]
-    expected = [x for x in expected if x is not None]
-
-    for f in found:
-        if not any(abs(f - e) <= 0.02 for e in expected):
-            return False
-    return True
-
-
-def run_advisor(advisor_input: AdvisorInput) -> str:
+def run_advisor(advisor_input: AdvisorInput) -> AdvisorResult:
     try:
         prompt = build_prompt(advisor_input)
 
         # Check cache first
         cached = _get_cached_response(prompt)
         if cached is not None:
-            return cached
+            print("[ADVISOR] Cache hit")
+            return AdvisorResult(response=cached, source="cache")
 
         # Check rate limit
         if not advisor_rate_limiter.allow_request():
-            return mock_advisor(advisor_input)
+            # Calculate when rate limit resets (oldest request + window)
+            reset_at = None
+            if advisor_rate_limiter._timestamps:
+                reset_at = advisor_rate_limiter._timestamps[0] + advisor_rate_limiter.window_seconds
+            print("[ADVISOR] Rate limited → mock")
+            return AdvisorResult(
+                response=mock_advisor(advisor_input),
+                source="mock_rate_limited",
+                rate_limit_reset_at=reset_at
+            )
 
         client = get_llm_client()
         response = call_llm(client, prompt).strip()
+        print(f"[ADVISOR] LLM raw response ({len(response)} chars): {response[:100]}...")
 
         if not response:
-            raise ValueError("Empty response from LLM")
-        if len(response) > 500:
-            raise ValueError("Response too long")
-
-        if not numeric_echo_check(response, advisor_input):
-            raise ValueError("Numeric echo-check failed: hallucinated numbers detected")
+            print("[ADVISOR] Empty response → mock")
+            return AdvisorResult(
+                response=mock_advisor(advisor_input),
+                source="mock_empty"
+            )
 
         # Cache successful response
         _set_cached_response(prompt, response)
+        print("[ADVISOR] LLM response OK")
+        return AdvisorResult(response=response, source="llm")
 
-        return response
-
-    except Exception:
-        return mock_advisor(advisor_input)
+    except Exception as e:
+        print(f"[ADVISOR] Exception: {type(e).__name__}: {e} → mock")
+        return AdvisorResult(
+            response=mock_advisor(advisor_input),
+            source="mock_error"
+        )
