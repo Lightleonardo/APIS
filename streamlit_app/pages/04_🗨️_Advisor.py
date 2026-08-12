@@ -1,4 +1,12 @@
 import streamlit as st
+import sys
+from pathlib import Path
+
+# Add project root to path (needed for Streamlit pages which run as separate scripts)
+project_root = Path(__file__).resolve().parent.parent.parent  # pages/ -> streamlit_app/ -> APIS/
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from streamlit_app.utils.backend_adapter import run_analysis_with_advice
 from streamlit_app.utils.session_state import SessionState
 from streamlit_app.utils.formatters import tone_badge
